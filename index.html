@@ -231,24 +231,6 @@
             color: var(--color-error);
         }
 
-        .wealth-distribution-chart {
-            width: 100%;
-            margin: 30px 0;
-        }
-
-        .chart-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .chart-title {
-            font-size: 1.2em;
-            font-weight: 600;
-            color: var(--color-text-primary);
-        }
-
         .chart-legend {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -312,6 +294,8 @@
             justify-content: space-around;
             height: 250px;
             gap: 12px;
+            padding-bottom: 40px;
+            position: relative;
         }
 
         .bar-wrapper {
@@ -320,29 +304,31 @@
             flex-direction: column;
             align-items: center;
             height: 100%;
+            position: relative;
         }
 
         .bar {
             width: 100%;
             border-radius: 4px 4px 0 0;
             transition: all 0.3s ease;
-            position: relative;
             display: flex;
             align-items: flex-end;
             justify-content: center;
+            min-height: 20px;
         }
 
         .bar-value {
             position: absolute;
-            top: -30px;
+            top: -28px;
             font-size: 0.85em;
             font-weight: 700;
             white-space: nowrap;
+            color: var(--color-text-primary);
         }
 
         .bar-label {
             position: absolute;
-            bottom: -30px;
+            bottom: -35px;
             font-size: 0.8em;
             text-align: center;
             font-weight: 600;
@@ -494,6 +480,10 @@
         .status-text .tier-name {
             font-size: 0.75em;
             margin-bottom: 3px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--color-text-secondary);
+            letter-spacing: 0.5px;
         }
 
         .status-text .change {
@@ -740,95 +730,74 @@
         const GLOBAL_POPULATION = 8.0e9; // 8 billion
         const TOTAL_WEALTH = 1200e12; // $1.2 quadrillion
         const GLOBAL_GDP = 110e12; // $110 trillion
-        const BASE_GROWTH = 0.023; // 2.3% base growth
 
-        // Wealth distribution parameters
-        const scenarios = {
-            current: {
-                gini: 0.83,
-                bottom50_wealth_pct: 0.05,
-                middle40_wealth_pct: 0.17,
-                upper10_wealth_pct: 0.70,
-                top1_wealth_pct: 0.50
-            },
-            target: {
-                gini: 0.50,
-                bottom50_wealth_pct: 0.16,
-                middle40_wealth_pct: 0.34,
-                upper10_wealth_pct: 0.38,
-                top1_wealth_pct: 0.12
-            },
-            postwar: {
-                gini: 0.48,
-                bottom50_wealth_pct: 0.17,
-                middle40_wealth_pct: 0.35,
-                upper10_wealth_pct: 0.36,
-                top1_wealth_pct: 0.12
-            }
+        // Current scenario (Gini 0.83)
+        const CURRENT_STATE = {
+            bottom50_pct: 0.05,
+            middle40_pct: 0.17,
+            upper10_pct: 0.70,
+            top1_pct: 0.50
+        };
+
+        // Target scenario (Gini 0.50)
+        const TARGET_STATE = {
+            bottom50_pct: 0.16,
+            middle40_pct: 0.34,
+            upper10_pct: 0.38,
+            top1_pct: 0.12
         };
 
         // Population distribution (fixed)
-        const populations = {
-            bottom50: GLOBAL_POPULATION * 0.50,
-            middle40: GLOBAL_POPULATION * 0.40,
-            upper10: GLOBAL_POPULATION * 0.09,
-            top1: GLOBAL_POPULATION * 0.01
+        const POPULATIONS = {
+            bottom50: 4.0e9,
+            middle40: 3.2e9,
+            upper10: 0.8e9,
+            top1: 80e6
         };
 
         function updateDashboard() {
             const gini = parseFloat(document.getElementById('giniSlider').value);
             document.getElementById('giniValue').textContent = gini.toFixed(2);
-            document.getElementById('currentGini').textContent = gini.toFixed(2);
+            document.getElementById('currentGini').textContent = '0.83';
+            document.getElementById('targetGini').textContent = gini.toFixed(2);
 
-            // Calculate wealth distribution based on Gini
-            const wealthDistribution = calculateWealthDistribution(gini);
+            // Calculate progress (0 = current state, 1 = target state)
+            const progress = (0.83 - gini) / (0.83 - 0.50);
+            const clampedProgress = Math.max(0, Math.min(1, progress));
 
-            // Update global stats
-            const growthGain = ((gini - 0.83) / -0.33) * 1.5; // Simplified growth model
-            document.getElementById('growthImpact').textContent = (growthGain * 100).toFixed(1) + '%';
+            // Interpolate wealth distribution
+            const wealthDist = {
+                bottom50_pct: CURRENT_STATE.bottom50_pct + (TARGET_STATE.bottom50_pct - CURRENT_STATE.bottom50_pct) * clampedProgress,
+                middle40_pct: CURRENT_STATE.middle40_pct + (TARGET_STATE.middle40_pct - CURRENT_STATE.middle40_pct) * clampedProgress,
+                upper10_pct: CURRENT_STATE.upper10_pct + (TARGET_STATE.upper10_pct - CURRENT_STATE.upper10_pct) * clampedProgress,
+                top1_pct: CURRENT_STATE.top1_pct + (TARGET_STATE.top1_pct - CURRENT_STATE.top1_pct) * clampedProgress
+            };
+
+            // Update growth impact
+            const growthGain = clampedProgress * 1.65; // 2.3% to 3.8% = 1.65 percentage point max
+            document.getElementById('growthImpact').textContent = (growthGain.toFixed(2)) + '%';
 
             // Update tier cards
-            updateTierCard('bottom50', wealthDistribution.bottom50_wealth_pct, populations.bottom50, scenarios.current.bottom50_wealth_pct);
-            updateTierCard('middle40', wealthDistribution.middle40_wealth_pct, populations.middle40, scenarios.current.middle40_wealth_pct);
-            updateTierCard('upper10', wealthDistribution.upper10_wealth_pct, populations.upper10, scenarios.current.upper10_wealth_pct);
-            updateTierCard('top1', wealthDistribution.top1_wealth_pct, populations.top1, scenarios.current.top1_wealth_pct);
+            updateTierCard('bottom50', wealthDist.bottom50_pct, POPULATIONS.bottom50, CURRENT_STATE.bottom50_pct);
+            updateTierCard('middle40', wealthDist.middle40_pct, POPULATIONS.middle40, CURRENT_STATE.middle40_pct);
+            updateTierCard('upper10', wealthDist.upper10_pct, POPULATIONS.upper10, CURRENT_STATE.upper10_pct);
+            updateTierCard('top1', wealthDist.top1_pct, POPULATIONS.top1, CURRENT_STATE.top1_pct);
 
             // Update charts
-            updateCharts(wealthDistribution);
+            updateCharts(wealthDist);
 
             // Update beneficiary status
-            updateBeneficiaryStatus(wealthDistribution);
-        }
-
-        function calculateWealthDistribution(gini) {
-            // Linear interpolation between current and target based on Gini
-            const currentGini = 0.83;
-            const targetGini = 0.50;
-            const progress = (currentGini - gini) / (currentGini - targetGini);
-            progress = Math.max(0, Math.min(1, progress)); // Clamp to 0-1
-
-            return {
-                bottom50_wealth_pct: 0.05 + (0.16 - 0.05) * progress,
-                middle40_wealth_pct: 0.17 + (0.34 - 0.17) * progress,
-                upper10_wealth_pct: 0.70 + (0.38 - 0.70) * progress,
-                top1_wealth_pct: 0.50 + (0.12 - 0.50) * progress
-            };
+            updateBeneficiaryStatus(wealthDist);
         }
 
         function updateTierCard(tier, newWealthPct, population, currentWealthPct) {
             const newWealth = TOTAL_WEALTH * newWealthPct;
             const currentWealth = TOTAL_WEALTH * currentWealthPct;
             const wealthChange = ((newWealth - currentWealth) / currentWealth) * 100;
-
-            // Format numbers
             const avgWealth = newWealth / population;
-            const wealthDisplay = formatCurrency(newWealth);
-            const popDisplay = formatPopulation(population);
-            const avgWealthDisplay = formatCurrency(avgWealth);
 
-            document.getElementById(`pop-${tier}`).textContent = popDisplay;
-            document.getElementById(`wealth-${tier}`).textContent = wealthDisplay;
-            document.getElementById(`avgWealth${tier.charAt(0).toUpperCase() + tier.slice(1)}`).textContent = avgWealthDisplay;
+            document.getElementById(`wealth-${tier}`).textContent = formatCurrency(newWealth);
+            document.getElementById(`avgWealth${tier.charAt(0).toUpperCase() + tier.slice(1)}`).textContent = formatCurrency(avgWealth);
 
             const changeEl = document.getElementById(`change-${tier}`);
             const sign = wealthChange >= 0 ? '+' : '';
@@ -836,20 +805,19 @@
             changeEl.className = 'tier-change ' + (wealthChange >= 0 ? 'positive' : 'negative');
         }
 
-        function updateCharts(wealthDistribution) {
-            // Current distribution
+        function updateCharts(wealthDist) {
             const currentBars = [
-                { tier: 'bottom50', pct: 0.05, label: 'Bottom 50%' },
-                { tier: 'middle40', pct: 0.17, label: 'Middle 40%' },
-                { tier: 'upper10', pct: 0.70, label: 'Upper 10%' },
-                { tier: 'top1', pct: 0.50, label: 'Top 1%' }
+                { tier: 'bottom50', pct: CURRENT_STATE.bottom50_pct, label: 'Bottom 50%' },
+                { tier: 'middle40', pct: CURRENT_STATE.middle40_pct, label: 'Middle 40%' },
+                { tier: 'upper10', pct: CURRENT_STATE.upper10_pct, label: 'Upper 10%' },
+                { tier: 'top1', pct: CURRENT_STATE.top1_pct, label: 'Top 1%' }
             ];
 
             const targetBars = [
-                { tier: 'bottom50', pct: wealthDistribution.bottom50_wealth_pct, label: 'Bottom 50%' },
-                { tier: 'middle40', pct: wealthDistribution.middle40_wealth_pct, label: 'Middle 40%' },
-                { tier: 'upper10', pct: wealthDistribution.upper10_wealth_pct, label: 'Upper 10%' },
-                { tier: 'top1', pct: wealthDistribution.top1_wealth_pct, label: 'Top 1%' }
+                { tier: 'bottom50', pct: wealthDist.bottom50_pct, label: 'Bottom 50%' },
+                { tier: 'middle40', pct: wealthDist.middle40_pct, label: 'Middle 40%' },
+                { tier: 'upper10', pct: wealthDist.upper10_pct, label: 'Upper 10%' },
+                { tier: 'top1', pct: wealthDist.top1_pct, label: 'Top 1%' }
             ];
 
             renderChart('currentChart', currentBars);
@@ -860,11 +828,13 @@
             const maxPct = Math.max(...bars.map(b => b.pct));
             const html = bars.map(bar => {
                 const height = (bar.pct / maxPct) * 100;
-                const tierClass = bar.tier === 'top1' ? 'top1' : bar.tier;
+                const tierClass = bar.tier;
+                const percentDisplay = (bar.pct * 100).toFixed(0);
+                
                 return `
                     <div class="bar-wrapper">
-                        <div class="bar ${tierClass}" style="height: ${height}%; min-height: 20px;">
-                            <div class="bar-value">${(bar.pct * 100).toFixed(0)}%</div>
+                        <div class="bar ${tierClass}" style="height: ${height}%;">
+                            <div class="bar-value">${percentDisplay}%</div>
                         </div>
                         <div class="bar-label">${bar.label}</div>
                     </div>
@@ -873,31 +843,27 @@
             document.getElementById(chartId).innerHTML = html;
         }
 
-        function updateBeneficiaryStatus(wealthDistribution) {
+        function updateBeneficiaryStatus(wealthDist) {
             const statuses = [
                 {
                     tier: 'Bottom 50%',
-                    current: 0.05,
-                    target: wealthDistribution.bottom50_wealth_pct,
-                    isBeneficiary: wealthDistribution.bottom50_wealth_pct > 0.05
+                    current: CURRENT_STATE.bottom50_pct,
+                    target: wealthDist.bottom50_pct
                 },
                 {
                     tier: 'Middle 40%',
-                    current: 0.17,
-                    target: wealthDistribution.middle40_wealth_pct,
-                    isBeneficiary: wealthDistribution.middle40_wealth_pct > 0.17
+                    current: CURRENT_STATE.middle40_pct,
+                    target: wealthDist.middle40_pct
                 },
                 {
                     tier: 'Upper 10%',
-                    current: 0.70,
-                    target: wealthDistribution.upper10_wealth_pct,
-                    isBeneficiary: wealthDistribution.upper10_wealth_pct > 0.70
+                    current: CURRENT_STATE.upper10_pct,
+                    target: wealthDist.upper10_pct
                 },
                 {
                     tier: 'Top 1%',
-                    current: 0.50,
-                    target: wealthDistribution.top1_wealth_pct,
-                    isBeneficiary: wealthDistribution.top1_wealth_pct > 0.50
+                    current: CURRENT_STATE.top1_pct,
+                    target: wealthDist.top1_pct
                 }
             ];
 
@@ -930,16 +896,14 @@
             return '$' + amount.toFixed(0);
         }
 
-        function formatPopulation(pop) {
-            if (pop >= 1e9) return (pop / 1e9).toFixed(1) + 'B';
-            if (pop >= 1e6) return (pop / 1e6).toFixed(0) + 'M';
-            if (pop >= 1e3) return (pop / 1e3).toFixed(0) + 'k';
-            return pop.toFixed(0);
-        }
-
         function loadScenario(scenario) {
-            const data = scenarios[scenario];
-            document.getElementById('giniSlider').value = data.gini;
+            if (scenario === 'current') {
+                document.getElementById('giniSlider').value = '0.83';
+            } else if (scenario === 'target') {
+                document.getElementById('giniSlider').value = '0.50';
+            } else if (scenario === 'postwar') {
+                document.getElementById('giniSlider').value = '0.48';
+            }
             updateDashboard();
         }
 
