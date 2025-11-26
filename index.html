@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Boltzmann-Gibbs Wealth Transition Dashboard</title>
+    <title>Boltzmann-Gibbs Wealth Distribution Dashboard</title>
     <style>
         :root {
             --color-bg-primary: rgba(252, 252, 249, 1);
@@ -36,36 +36,36 @@
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1600px;
             margin: 0 auto;
         }
 
         header {
             text-align: center;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
             border-bottom: 2px solid var(--color-border);
             padding-bottom: 20px;
         }
 
         h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
+            font-size: 2.2em;
+            margin-bottom: 8px;
             color: var(--color-text-primary);
         }
 
         .subtitle {
-            font-size: 1.1em;
+            font-size: 1em;
             color: var(--color-text-secondary);
         }
 
         .dashboard-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr 2fr;
             gap: 30px;
             margin-bottom: 40px;
         }
 
-        @media (max-width: 1200px) {
+        @media (max-width: 1400px) {
             .dashboard-grid {
                 grid-template-columns: 1fr;
             }
@@ -75,12 +75,12 @@
             background: var(--color-bg-secondary);
             border: 1px solid var(--color-border);
             border-radius: var(--radius-lg);
-            padding: 30px;
+            padding: 25px;
             box-shadow: var(--shadow-md);
         }
 
         .panel-title {
-            font-size: 1.4em;
+            font-size: 1.3em;
             margin-bottom: 20px;
             color: var(--color-text-primary);
             font-weight: 600;
@@ -92,7 +92,7 @@
 
         label {
             display: block;
-            font-size: 0.95em;
+            font-size: 0.9em;
             font-weight: 500;
             margin-bottom: 8px;
             color: var(--color-text-primary);
@@ -135,143 +135,294 @@
             color: white;
             padding: 4px 12px;
             border-radius: 20px;
-            font-size: 0.9em;
+            font-size: 0.85em;
             font-weight: 600;
             margin-left: 10px;
         }
 
-        .metric-box {
-            background: white;
-            border-left: 4px solid var(--color-primary);
+        .global-stats {
+            background: rgba(33, 128, 141, 0.05);
             padding: 15px;
-            margin-bottom: 15px;
-            border-radius: 4px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.9em;
         }
 
-        .metric-label {
-            font-size: 0.85em;
-            color: var(--color-text-secondary);
-            text-transform: uppercase;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            margin-bottom: 5px;
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
         }
 
-        .metric-value {
-            font-size: 1.8em;
-            font-weight: 700;
-            color: var(--color-primary);
-            margin-bottom: 5px;
+        .stat-row:last-child {
+            border-bottom: none;
         }
 
-        .metric-change {
-            font-size: 0.95em;
-            font-weight: 600;
-        }
-
-        .metric-change.positive {
-            color: var(--color-success);
-        }
-
-        .metric-change.negative {
-            color: var(--color-error);
-        }
-
-        .comparison-grid {
+        .wealth-tiers {
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 15px;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
             margin-top: 20px;
         }
 
-        .scenario-box {
+        .tier-card {
             background: white;
-            padding: 15px;
-            border-radius: 8px;
+            border-left: 5px solid var(--color-primary);
+            padding: 18px;
+            border-radius: 6px;
             border: 1px solid var(--color-border);
-            text-align: center;
         }
 
-        .scenario-title {
-            font-size: 0.9em;
-            font-weight: 600;
-            color: var(--color-text-secondary);
-            margin-bottom: 10px;
+        .tier-name {
+            font-size: 0.8em;
+            font-weight: 700;
             text-transform: uppercase;
+            color: var(--color-text-secondary);
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
         }
 
-        .scenario-value {
+        .tier-population {
+            font-size: 1.1em;
+            margin-bottom: 12px;
+        }
+
+        .tier-population .label {
+            font-size: 0.85em;
+            color: var(--color-text-secondary);
+            display: block;
+        }
+
+        .tier-population .value {
             font-size: 1.6em;
             font-weight: 700;
             color: var(--color-primary);
         }
 
-        .chart-container {
+        .tier-wealth {
+            margin-bottom: 12px;
+        }
+
+        .tier-wealth .label {
+            font-size: 0.85em;
+            color: var(--color-text-secondary);
+            display: block;
+        }
+
+        .tier-wealth .value {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: var(--color-primary);
+        }
+
+        .tier-change {
+            padding-top: 12px;
+            border-top: 1px solid var(--color-border);
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+
+        .tier-change.positive {
+            color: var(--color-success);
+        }
+
+        .tier-change.negative {
+            color: var(--color-error);
+        }
+
+        .wealth-distribution-chart {
             width: 100%;
-            height: 300px;
+            margin: 30px 0;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .chart-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: var(--color-text-primary);
+        }
+
+        .chart-legend {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+        }
+
+        .legend-color.bottom50 {
+            background: rgba(33, 128, 141, 0.3);
+        }
+
+        .legend-color.middle40 {
+            background: rgba(33, 128, 141, 0.6);
+        }
+
+        .legend-color.upper10 {
+            background: rgba(33, 128, 141, 0.85);
+        }
+
+        .legend-color.top1 {
+            background: rgba(192, 21, 47, 0.8);
+        }
+
+        .bars-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .bar-group {
             background: white;
+            border: 1px solid var(--color-border);
             border-radius: 8px;
             padding: 20px;
-            border: 1px solid var(--color-border);
-            position: relative;
+        }
+
+        .bar-title {
+            font-size: 0.95em;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--color-text-primary);
         }
 
         .bar-chart {
             display: flex;
             align-items: flex-end;
             justify-content: space-around;
+            height: 250px;
+            gap: 12px;
+        }
+
+        .bar-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             height: 100%;
-            gap: 15px;
         }
 
         .bar {
-            flex: 1;
-            background: var(--color-primary);
+            width: 100%;
             border-radius: 4px 4px 0 0;
-            position: relative;
-            min-height: 20px;
             transition: all 0.3s ease;
-        }
-
-        .bar:hover {
-            background: var(--color-primary-hover);
-            filter: brightness(1.1);
-        }
-
-        .bar-label {
-            position: absolute;
-            bottom: -25px;
-            left: 0;
-            right: 0;
-            text-align: center;
-            font-size: 0.8em;
-            color: var(--color-text-secondary);
-            font-weight: 600;
+            position: relative;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
         }
 
         .bar-value {
             position: absolute;
-            top: -25px;
-            left: 0;
-            right: 0;
+            top: -30px;
+            font-size: 0.85em;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .bar-label {
+            position: absolute;
+            bottom: -30px;
+            font-size: 0.8em;
             text-align: center;
-            font-size: 0.9em;
+            font-weight: 600;
+            width: 100%;
+            color: var(--color-text-secondary);
+        }
+
+        .bar.bottom50 {
+            background: rgba(33, 128, 141, 0.3);
+        }
+
+        .bar.middle40 {
+            background: rgba(33, 128, 141, 0.6);
+        }
+
+        .bar.upper10 {
+            background: rgba(33, 128, 141, 0.85);
+        }
+
+        .bar.top1 {
+            background: rgba(192, 21, 47, 0.8);
+        }
+
+        .bar:hover {
+            filter: brightness(1.15);
+            box-shadow: 0 4px 12px rgba(33, 128, 141, 0.3);
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .summary-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .summary-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--color-border);
+            text-align: center;
+        }
+
+        .summary-label {
+            font-size: 0.8em;
+            color: var(--color-text-secondary);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .summary-value {
+            font-size: 1.5em;
             font-weight: 700;
             color: var(--color-primary);
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
         }
 
         button {
             background: var(--color-primary);
             color: white;
             border: none;
-            padding: 12px 24px;
+            padding: 10px 20px;
             border-radius: 6px;
-            font-size: 1em;
+            font-size: 0.9em;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            margin-right: 10px;
-            margin-bottom: 10px;
         }
 
         button:hover {
@@ -291,144 +442,100 @@
             color: white;
         }
 
-        .timeline {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 10px;
-            margin: 20px 0;
-        }
-
-        .timeline-item {
-            background: white;
-            border: 2px solid var(--color-border);
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .timeline-item:hover {
-            border-color: var(--color-primary);
-            box-shadow: 0 2px 8px rgba(33, 128, 141, 0.2);
-        }
-
-        .timeline-item.active {
-            background: var(--color-primary);
-            color: white;
-            border-color: var(--color-primary);
-        }
-
-        .timeline-phase {
-            font-size: 0.85em;
-            font-weight: 600;
-            margin-bottom: 5px;
-            text-transform: uppercase;
-        }
-
-        .timeline-gini {
-            font-size: 1.4em;
-            font-weight: 700;
-            margin-bottom: 5px;
-        }
-
-        .timeline-years {
-            font-size: 0.8em;
-            opacity: 0.8;
-        }
-
-        .summary-panel {
-            grid-column: 1 / -1;
-            background: linear-gradient(135deg, rgba(33, 128, 141, 0.1) 0%, rgba(33, 128, 141, 0.05) 100%);
-            border-left: 5px solid var(--color-primary);
-            padding: 25px;
-            border-radius: 8px;
-        }
-
-        .summary-title {
-            font-size: 1.3em;
-            font-weight: 700;
-            margin-bottom: 15px;
-            color: var(--color-text-primary);
-        }
-
-        .summary-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-        }
-
-        @media (max-width: 768px) {
-            .summary-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        .summary-item {
-            text-align: center;
-        }
-
-        .summary-label {
-            font-size: 0.85em;
-            color: var(--color-text-secondary);
-            margin-bottom: 8px;
-            font-weight: 600;
-        }
-
-        .summary-value {
-            font-size: 1.6em;
-            font-weight: 700;
-            color: var(--color-primary);
-        }
-
-        .tooltip {
-            position: absolute;
-            background: var(--color-text-primary);
-            color: white;
-            padding: 8px 12px;
-            border-radius: 4px;
-            font-size: 0.85em;
-            white-space: nowrap;
-            z-index: 1000;
-            display: none;
-        }
-
-        .info-icon {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            background: var(--color-primary);
-            color: white;
-            border-radius: 50%;
-            text-align: center;
-            line-height: 20px;
-            font-size: 0.8em;
-            margin-left: 8px;
-            cursor: help;
-            position: relative;
-        }
-
-        .info-icon:hover + .tooltip {
-            display: block;
-        }
-
-        .controls {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-
-        .reset-button {
+        button.reset {
             background: var(--color-warning);
         }
 
-        .reset-button:hover {
+        button.reset:hover {
             background: rgba(168, 75, 47, 0.9);
         }
 
-        .export-button {
-            background: var(--color-primary);
+        .beneficiary-status {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(33, 128, 141, 0.05);
+            border-radius: 8px;
+        }
+
+        .status-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .status-indicator {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+            font-weight: 700;
+        }
+
+        .status-indicator.gain {
+            background: rgba(33, 128, 141, 0.2);
+            color: var(--color-success);
+        }
+
+        .status-indicator.loss {
+            background: rgba(192, 21, 47, 0.2);
+            color: var(--color-error);
+        }
+
+        .status-text {
+            font-size: 0.85em;
+        }
+
+        .status-text .tier-name {
+            font-size: 0.75em;
+            margin-bottom: 3px;
+        }
+
+        .status-text .change {
+            font-weight: 700;
+            font-size: 0.9em;
+        }
+
+        .status-text .change.positive {
+            color: var(--color-success);
+        }
+
+        .status-text .change.negative {
+            color: var(--color-error);
+        }
+
+        .gini-tracker {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: white;
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+        }
+
+        .gini-item {
+            text-align: center;
+        }
+
+        .gini-label {
+            font-size: 0.8em;
+            color: var(--color-text-secondary);
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .gini-value {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: var(--color-primary);
         }
 
         footer {
@@ -437,354 +544,402 @@
             padding-top: 20px;
             border-top: 1px solid var(--color-border);
             color: var(--color-text-secondary);
-            font-size: 0.9em;
+            font-size: 0.85em;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Boltzmann-Gibbs Wealth Transition Dashboard</h1>
-            <p class="subtitle">Interactive Model: Explore Economic Restructuring to Gini 0.50</p>
+            <h1>Wealth Distribution Impact Dashboard</h1>
+            <p class="subtitle">Real-time Analysis: Global Population & Wealth Redistribution Effects</p>
         </header>
 
         <div class="controls">
-            <button class="secondary" onclick="loadScenario('current')">Current Reality</button>
-            <button class="secondary" onclick="loadScenario('target')">Target State</button>
-            <button class="secondary" onclick="loadScenario('historical')">Post-WWII</button>
-            <button class="reset-button" onclick="resetDashboard()">Reset</button>
-            <button class="export-button" onclick="exportData()">Export Report</button>
+            <button class="secondary" onclick="loadScenario('current')">Current State (Gini 0.83)</button>
+            <button class="secondary" onclick="loadScenario('target')">Target State (Gini 0.50)</button>
+            <button class="secondary" onclick="loadScenario('postwar')">Post-WWII (Gini 0.48)</button>
+            <button class="reset" onclick="resetDashboard()">Reset</button>
         </div>
 
         <div class="dashboard-grid">
-            <!-- LEFT PANEL: Input Controls -->
+            <!-- LEFT PANEL: Controls -->
             <div class="panel">
-                <div class="panel-title">Scenario Builder</div>
+                <div class="panel-title">Gini Coefficient Adjustment</div>
                 
                 <div class="control-group">
                     <label>
-                        Current Gini Coefficient
+                        Target Gini Coefficient
                         <span class="slider-value" id="giniValue">0.83</span>
                     </label>
                     <input type="range" id="giniSlider" min="0.30" max="0.95" step="0.01" value="0.83" oninput="updateDashboard()">
                 </div>
 
-                <div class="control-group">
-                    <label>
-                        Target Gini Coefficient
-                        <span class="slider-value" id="targetGiniValue">0.50</span>
-                    </label>
-                    <input type="range" id="targetGiniSlider" min="0.30" max="0.95" step="0.01" value="0.50" oninput="updateDashboard()">
+                <div class="gini-tracker">
+                    <div class="gini-item">
+                        <div class="gini-label">Current</div>
+                        <div class="gini-value" id="currentGini">0.83</div>
+                    </div>
+                    <div class="gini-item">
+                        <div class="gini-label">Target</div>
+                        <div class="gini-value" id="targetGini">0.83</div>
+                    </div>
                 </div>
 
-                <div class="control-group">
-                    <label>
-                        Transition Timeline (Years)
-                        <span class="slider-value" id="timelineValue">25</span>
-                    </label>
-                    <input type="range" id="timelineSlider" min="10" max="40" step="1" value="25" oninput="updateDashboard()">
+                <div class="global-stats">
+                    <div class="stat-row">
+                        <strong>Global Population:</strong>
+                        <span id="globalPop">8.0B</span>
+                    </div>
+                    <div class="stat-row">
+                        <strong>Global GDP:</strong>
+                        <span id="globalGdp">$110T</span>
+                    </div>
+                    <div class="stat-row">
+                        <strong>Total Wealth:</strong>
+                        <span id="totalWealth">$1,200T</span>
+                    </div>
+                    <div class="stat-row">
+                        <strong>Growth Impact:</strong>
+                        <span id="growthImpact" style="font-weight: 700;">0.0%</span>
+                    </div>
                 </div>
 
-                <div class="control-group">
-                    <label>
-                        Population (Millions)
-                        <span class="slider-value" id="populationValue">330</span>
-                    </label>
-                    <input type="range" id="populationSlider" min="50" max="1500" step="50" value="330" oninput="updateDashboard()">
-                </div>
+                <div class="wealth-tiers">
+                    <div class="tier-card">
+                        <div class="tier-name">Bottom 50%</div>
+                        <div class="tier-population">
+                            <div class="label">Population</div>
+                            <div class="value" id="pop-bottom50">4.0B</div>
+                        </div>
+                        <div class="tier-wealth">
+                            <div class="label">Total Wealth</div>
+                            <div class="value" id="wealth-bottom50">$60T</div>
+                        </div>
+                        <div class="tier-change positive" id="change-bottom50">+0% wealth</div>
+                    </div>
 
-                <div class="control-group">
-                    <label>
-                        Total Wealth (Trillions $)
-                        <span class="slider-value" id="wealthValue">$193T</span>
-                    </label>
-                    <input type="range" id="wealthSlider" min="50" max="500" step="10" value="193" oninput="updateDashboard()">
-                </div>
+                    <div class="tier-card">
+                        <div class="tier-name">Middle 40% (50-90%)</div>
+                        <div class="tier-population">
+                            <div class="label">Population</div>
+                            <div class="value" id="pop-middle40">3.2B</div>
+                        </div>
+                        <div class="tier-wealth">
+                            <div class="label">Total Wealth</div>
+                            <div class="value" id="wealth-middle40">$240T</div>
+                        </div>
+                        <div class="tier-change positive" id="change-middle40">+0% wealth</div>
+                    </div>
 
-                <hr style="margin: 20px 0; border: none; border-top: 1px solid var(--color-border);">
+                    <div class="tier-card">
+                        <div class="tier-name">Upper 10%</div>
+                        <div class="tier-population">
+                            <div class="label">Population</div>
+                            <div class="value" id="pop-upper10">0.8B</div>
+                        </div>
+                        <div class="tier-wealth">
+                            <div class="label">Total Wealth</div>
+                            <div class="value" id="wealth-upper10">$840T</div>
+                        </div>
+                        <div class="tier-change negative" id="change-upper10">-0% wealth</div>
+                    </div>
 
-                <div style="background: rgba(33, 128, 141, 0.05); padding: 15px; border-radius: 6px; margin-top: 20px;">
-                    <strong>Key Inputs</strong>
-                    <div style="font-size: 0.9em; margin-top: 10px;">
-                        <div><strong>Current State:</strong> Gini <span id="displayGini">0.83</span></div>
-                        <div><strong>Target State:</strong> Gini <span id="displayTargetGini">0.50</span></div>
-                        <div><strong>Timeline:</strong> <span id="displayTimeline">25</span> years</div>
-                        <div><strong>Population:</strong> <span id="displayPopulation">330</span>M</div>
-                        <div><strong>Total Wealth:</strong> $<span id="displayWealth">193</span>T</div>
+                    <div class="tier-card">
+                        <div class="tier-name">Top 1%</div>
+                        <div class="tier-population">
+                            <div class="label">Population</div>
+                            <div class="value" id="pop-top1">80M</div>
+                        </div>
+                        <div class="tier-wealth">
+                            <div class="label">Total Wealth</div>
+                            <div class="value" id="wealth-top1">$600T</div>
+                        </div>
+                        <div class="tier-change negative" id="change-top1">-0% wealth</div>
                     </div>
                 </div>
             </div>
 
-            <!-- RIGHT PANEL: Key Metrics -->
+            <!-- RIGHT PANEL: Charts and Analysis -->
             <div class="panel">
-                <div class="panel-title">Economic Impact Projections</div>
+                <div class="panel-title">Wealth Distribution Analysis</div>
 
-                <div class="metric-box">
-                    <div class="metric-label">Gini Coefficient Reduction</div>
-                    <div class="metric-value" id="giniReduction">-0.33</div>
-                    <div class="metric-change positive" id="giniPercent">60% reduction</div>
-                </div>
-
-                <div class="metric-box">
-                    <div class="metric-label">Annual GDP Growth</div>
-                    <div class="metric-value" id="gdpGrowth">+1.5%</div>
-                    <div class="metric-change positive" id="gdpPercent">From 2.3% → 3.8%</div>
-                </div>
-
-                <div class="metric-box">
-                    <div class="metric-label">Bottom 50% Wealth Gain</div>
-                    <div class="metric-value" id="wealthGain">+$230k</div>
-                    <div class="metric-change positive" id="wealthPercent">+383% average</div>
-                </div>
-
-                <div class="metric-box">
-                    <div class="metric-label">Entrepreneurship Increase</div>
-                    <div class="metric-value" id="entrepreneurshipGain">+111%</div>
-                    <div class="metric-change positive" id="entrepreneurPercent">180 → 380 per 100k</div>
-                </div>
-
-                <div class="metric-box">
-                    <div class="metric-label">Innovation Index Gain</div>
-                    <div class="metric-value" id="innovationGain">+114%</div>
-                    <div class="metric-change positive" id="innovationPercent">35 → 75</div>
-                </div>
-
-                <div class="metric-box">
-                    <div class="metric-label">Global Beneficiaries</div>
-                    <div class="metric-value" id="beneficiaries">2.3B</div>
-                    <div class="metric-change positive" id="beneficiaryPercent">Bottom 50% of major economies</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- IMPLEMENTATION TIMELINE -->
-        <div class="panel">
-            <div class="panel-title">5-Phase Implementation Timeline</div>
-            <div class="timeline" id="timeline">
-                <!-- Populated by JavaScript -->
-            </div>
-        </div>
-
-        <!-- THREE-SCENARIO COMPARISON -->
-        <div class="dashboard-grid">
-            <div class="panel">
-                <div class="panel-title">Current State vs. Target vs. Historical</div>
-                <div class="comparison-grid">
-                    <div class="scenario-box">
-                        <div class="scenario-title">Current (2024)</div>
-                        <div style="font-size: 2em; margin-bottom: 5px;">🔴</div>
-                        <div class="scenario-value" style="color: var(--color-error);">Gini 0.83</div>
-                        <div style="font-size: 0.85em; color: var(--color-text-secondary); margin-top: 10px;">Growth: 2.3%<br>Innovation: 35</div>
+                <div class="chart-legend">
+                    <div class="legend-item">
+                        <div class="legend-color bottom50"></div>
+                        <span>Bottom 50%</span>
                     </div>
-                    <div class="scenario-box">
-                        <div class="scenario-title">Target (2050)</div>
-                        <div style="font-size: 2em; margin-bottom: 5px;">🟢</div>
-                        <div class="scenario-value">Gini 0.50</div>
-                        <div style="font-size: 0.85em; color: var(--color-text-secondary); margin-top: 10px;">Growth: 3.8%<br>Innovation: 75</div>
+                    <div class="legend-item">
+                        <div class="legend-color middle40"></div>
+                        <span>Middle 40%</span>
                     </div>
-                    <div class="scenario-box">
-                        <div class="scenario-title">Post-WWII (1950-1973)</div>
-                        <div style="font-size: 2em; margin-bottom: 5px;">🔵</div>
-                        <div class="scenario-value" style="color: rgba(33, 128, 141, 0.7);">Gini 0.48</div>
-                        <div style="font-size: 0.85em; color: var(--color-text-secondary); margin-top: 10px;">Growth: 4.5%<br>Innovation: 85</div>
+                    <div class="legend-item">
+                        <div class="legend-color upper10"></div>
+                        <span>Upper 10%</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color top1"></div>
+                        <span>Top 1%</span>
                     </div>
                 </div>
-            </div>
 
-            <div class="panel">
-                <div class="panel-title">Three Pillars of Transition</div>
-                <div style="display: grid; gap: 15px;">
-                    <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid var(--color-primary);">
-                        <strong style="color: var(--color-primary);">1. Sovereign Asset Fund</strong>
-                        <div style="font-size: 0.9em; color: var(--color-text-secondary); margin-top: 5px;">
-                            2% annual equity transfer from top 1%<br>
-                            <strong>Total mobilized: $39 trillion</strong>
+                <div class="bars-container">
+                    <div class="bar-group">
+                        <div class="bar-title">Current Wealth Distribution</div>
+                        <div class="bar-chart" id="currentChart">
+                            <!-- Populated by JavaScript -->
                         </div>
                     </div>
-                    <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid var(--color-warning);">
-                        <strong style="color: var(--color-warning);">2. Exit Tax</strong>
-                        <div style="font-size: 0.9em; color: var(--color-text-secondary); margin-top: 5px;">
-                            40% deemed disposal for capital flight<br>
-                            <strong>Prevents oligarch flight</strong>
-                        </div>
-                    </div>
-                    <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid var(--color-success);">
-                        <strong style="color: var(--color-success);">3. Universal Basic Capital</strong>
-                        <div style="font-size: 0.9em; color: var(--color-text-secondary); margin-top: 5px;">
-                            $75-100k per citizen at age 18<br>
-                            <strong>Enables 2.3B people globally</strong>
+
+                    <div class="bar-group">
+                        <div class="bar-title">Target Wealth Distribution</div>
+                        <div class="bar-chart" id="targetChart">
+                            <!-- Populated by JavaScript -->
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- SUMMARY PANEL -->
-        <div class="panel summary-panel">
-            <div class="summary-title">25-Year Transition Outcomes</div>
-            <div class="summary-grid">
-                <div class="summary-item">
-                    <div class="summary-label">GDP Growth Acceleration</div>
-                    <div class="summary-value" id="summaryGdp">+65%</div>
+                <div class="beneficiary-status" id="beneficiaryStatus">
+                    <!-- Populated by JavaScript -->
                 </div>
-                <div class="summary-item">
-                    <div class="summary-label">Jobs Created</div>
-                    <div class="summary-value" id="summaryJobs">15M+</div>
-                </div>
-                <div class="summary-item">
-                    <div class="summary-label">Life Expectancy Gap</div>
-                    <div class="summary-value" id="summaryLife">-73%</div>
-                </div>
-                <div class="summary-item">
-                    <div class="summary-label">Homeownership Increase</div>
-                    <div class="summary-value" id="summaryHome">+26%</div>
+
+                <div class="summary-grid">
+                    <div class="summary-item">
+                        <div class="summary-label">Avg Wealth per Person</div>
+                        <div class="summary-value" id="avgWealthBottom50">$15k</div>
+                        <div style="font-size: 0.8em; color: var(--color-text-secondary); margin-top: 5px;">Bottom 50%</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-label">Avg Wealth per Person</div>
+                        <div class="summary-value" id="avgWealthMiddle40">$75k</div>
+                        <div style="font-size: 0.8em; color: var(--color-text-secondary); margin-top: 5px;">Middle 40%</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-label">Avg Wealth per Person</div>
+                        <div class="summary-value" id="avgWealthUpper10">$1.05M</div>
+                        <div style="font-size: 0.8em; color: var(--color-text-secondary); margin-top: 5px;">Upper 10%</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-label">Avg Wealth per Person</div>
+                        <div class="summary-value" id="avgWealthTop1">$7.5M</div>
+                        <div style="font-size: 0.8em; color: var(--color-text-secondary); margin-top: 5px;">Top 1%</div>
+                    </div>
                 </div>
             </div>
         </div>
 
         <footer>
-            <p><strong>Boltzmann-Gibbs Wealth Transition Interactive Dashboard</strong></p>
-            <p>Based on econophysics, thermodynamic principles, and empirical data from 96+ countries (2004-2024)</p>
-            <p style="margin-top: 10px; font-size: 0.85em; color: rgba(0,0,0,0.5);">This dashboard is for educational and exploratory purposes. Actual policy implementation would require detailed modeling and international coordination.</p>
+            <p><strong>Wealth Distribution Impact Dashboard</strong></p>
+            <p>Global baseline: 8.0B population, $1,200T total wealth, $110T annual GDP (2024 estimates)</p>
+            <p>Adjust slider to see real-time impact on each wealth tier. Green = gain, Red = loss</p>
         </footer>
     </div>
 
     <script>
+        // Global constants
+        const GLOBAL_POPULATION = 8.0e9; // 8 billion
+        const TOTAL_WEALTH = 1200e12; // $1.2 quadrillion
+        const GLOBAL_GDP = 110e12; // $110 trillion
+        const BASE_GROWTH = 0.023; // 2.3% base growth
+
+        // Wealth distribution parameters
         const scenarios = {
             current: {
                 gini: 0.83,
-                targetGini: 0.50,
-                timeline: 25,
-                population: 330,
-                wealth: 193
+                bottom50_wealth_pct: 0.05,
+                middle40_wealth_pct: 0.17,
+                upper10_wealth_pct: 0.70,
+                top1_wealth_pct: 0.50
             },
             target: {
                 gini: 0.50,
-                targetGini: 0.50,
-                timeline: 25,
-                population: 330,
-                wealth: 193
+                bottom50_wealth_pct: 0.16,
+                middle40_wealth_pct: 0.34,
+                upper10_wealth_pct: 0.38,
+                top1_wealth_pct: 0.12
             },
-            historical: {
+            postwar: {
                 gini: 0.48,
-                targetGini: 0.48,
-                timeline: 25,
-                population: 140,
-                wealth: 2
+                bottom50_wealth_pct: 0.17,
+                middle40_wealth_pct: 0.35,
+                upper10_wealth_pct: 0.36,
+                top1_wealth_pct: 0.12
             }
+        };
+
+        // Population distribution (fixed)
+        const populations = {
+            bottom50: GLOBAL_POPULATION * 0.50,
+            middle40: GLOBAL_POPULATION * 0.40,
+            upper10: GLOBAL_POPULATION * 0.09,
+            top1: GLOBAL_POPULATION * 0.01
         };
 
         function updateDashboard() {
             const gini = parseFloat(document.getElementById('giniSlider').value);
-            const targetGini = parseFloat(document.getElementById('targetGiniSlider').value);
-            const timeline = parseInt(document.getElementById('timelineSlider').value);
-            const population = parseInt(document.getElementById('populationSlider').value);
-            const wealth = parseInt(document.getElementById('wealthSlider').value);
-
-            // Update slider displays
             document.getElementById('giniValue').textContent = gini.toFixed(2);
-            document.getElementById('targetGiniValue').textContent = targetGini.toFixed(2);
-            document.getElementById('timelineValue').textContent = timeline;
-            document.getElementById('populationValue').textContent = population;
-            document.getElementById('wealthValue').textContent = '$' + wealth + 'T';
+            document.getElementById('currentGini').textContent = gini.toFixed(2);
 
-            // Update display values
-            document.getElementById('displayGini').textContent = gini.toFixed(2);
-            document.getElementById('displayTargetGini').textContent = targetGini.toFixed(2);
-            document.getElementById('displayTimeline').textContent = timeline;
-            document.getElementById('displayPopulation').textContent = population;
-            document.getElementById('displayWealth').textContent = wealth;
+            // Calculate wealth distribution based on Gini
+            const wealthDistribution = calculateWealthDistribution(gini);
 
-            // Calculate metrics
-            const giniReduction = gini - targetGini;
-            const giniPercent = ((giniReduction / gini) * 100).toFixed(0);
-            
-            const gdpGain = (gini - targetGini) * 2.5; // Simplified model
-            const currentGdp = 2.3;
-            const targetGdp = currentGdp + (gdpGain * 1.5);
-            const gdpGrowthGain = targetGdp - currentGdp;
-            const gdpPercent = ((gdpGrowthGain / currentGdp) * 100).toFixed(0);
+            // Update global stats
+            const growthGain = ((gini - 0.83) / -0.33) * 1.5; // Simplified growth model
+            document.getElementById('growthImpact').textContent = (growthGain * 100).toFixed(1) + '%';
 
-            // Bottom 50% wealth calculation
-            const currentWealthBottom50 = 60; // in thousands
-            const wealthGainPercent = (giniReduction / gini) * 383 * 0.6; // Proportional gain
-            const wealthGain = (currentWealthBottom50 * wealthGainPercent) / 100;
-            const targetWealthBottom50 = currentWealthBottom50 + wealthGain;
+            // Update tier cards
+            updateTierCard('bottom50', wealthDistribution.bottom50_wealth_pct, populations.bottom50, scenarios.current.bottom50_wealth_pct);
+            updateTierCard('middle40', wealthDistribution.middle40_wealth_pct, populations.middle40, scenarios.current.middle40_wealth_pct);
+            updateTierCard('upper10', wealthDistribution.upper10_wealth_pct, populations.upper10, scenarios.current.upper10_wealth_pct);
+            updateTierCard('top1', wealthDistribution.top1_wealth_pct, populations.top1, scenarios.current.top1_wealth_pct);
 
-            // Entrepreneurship
-            const entrepreneurshipCurrent = 180;
-            const entrepreneurshipTarget = 180 + (giniReduction / gini) * 200;
-            const entrepreneurGain = ((entrepreneurshipTarget - entrepreneurshipCurrent) / entrepreneurshipCurrent) * 100;
+            // Update charts
+            updateCharts(wealthDistribution);
 
-            // Innovation
-            const innovationCurrent = 35;
-            const innovationTarget = 35 + (giniReduction / gini) * 50;
-            const innovationGain = ((innovationTarget - innovationCurrent) / innovationCurrent) * 100;
-
-            // Update metrics
-            document.getElementById('giniReduction').textContent = giniReduction.toFixed(2);
-            document.getElementById('giniPercent').textContent = giniPercent + '% reduction';
-            
-            document.getElementById('gdpGrowth').textContent = (gdpGrowthGain * 100).toFixed(1) + '%';
-            document.getElementById('gdpPercent').textContent = 'From ' + currentGdp.toFixed(1) + '% → ' + targetGdp.toFixed(1) + '%';
-            
-            document.getElementById('wealthGain').textContent = '+$' + Math.round(wealthGain * 1000) + '';
-            document.getElementById('wealthPercent').textContent = '+' + ((wealthGainPercent)).toFixed(0) + '% average';
-            
-            document.getElementById('entrepreneurshipGain').textContent = '+' + entrepreneurGain.toFixed(0) + '%';
-            document.getElementById('entrepreneurPercent').textContent = Math.round(entrepreneurshipCurrent) + ' → ' + Math.round(entrepreneurshipTarget) + ' per 100k';
-            
-            document.getElementById('innovationGain').textContent = '+' + innovationGain.toFixed(0) + '%';
-            document.getElementById('innovationPercent').textContent = Math.round(innovationCurrent) + ' → ' + Math.round(innovationTarget);
-
-            // Update summary
-            document.getElementById('summaryGdp').textContent = '+' + gdpPercent + '%';
-            document.getElementById('summaryJobs').textContent = (15 * (gdpGain / 0.33)).toFixed(0) + 'M+';
-            document.getElementById('summaryLife').textContent = '-' + (73 * (giniReduction / 0.33)).toFixed(0) + '%';
-            document.getElementById('summaryHome').textContent = '+' + (26 * (giniReduction / 0.33)).toFixed(0) + '%';
-
-            updateTimeline();
+            // Update beneficiary status
+            updateBeneficiaryStatus(wealthDistribution);
         }
 
-        function updateTimeline() {
-            const timeline = parseInt(document.getElementById('timelineSlider').value);
-            const phaseLength = timeline / 5;
+        function calculateWealthDistribution(gini) {
+            // Linear interpolation between current and target based on Gini
+            const currentGini = 0.83;
+            const targetGini = 0.50;
+            const progress = (currentGini - gini) / (currentGini - targetGini);
+            progress = Math.max(0, Math.min(1, progress)); // Clamp to 0-1
 
-            const phases = [
-                { phase: 1, giniStart: 0.83, giniEnd: 0.75, label: 'Foundation' },
-                { phase: 2, giniStart: 0.75, giniEnd: 0.65, label: 'Acceleration' },
-                { phase: 3, giniStart: 0.65, giniEnd: 0.58, label: 'Transition' },
-                { phase: 4, giniStart: 0.58, giniEnd: 0.52, label: 'Momentum' },
-                { phase: 5, giniStart: 0.52, giniEnd: 0.50, label: 'Equilibrium' }
+            return {
+                bottom50_wealth_pct: 0.05 + (0.16 - 0.05) * progress,
+                middle40_wealth_pct: 0.17 + (0.34 - 0.17) * progress,
+                upper10_wealth_pct: 0.70 + (0.38 - 0.70) * progress,
+                top1_wealth_pct: 0.50 + (0.12 - 0.50) * progress
+            };
+        }
+
+        function updateTierCard(tier, newWealthPct, population, currentWealthPct) {
+            const newWealth = TOTAL_WEALTH * newWealthPct;
+            const currentWealth = TOTAL_WEALTH * currentWealthPct;
+            const wealthChange = ((newWealth - currentWealth) / currentWealth) * 100;
+
+            // Format numbers
+            const avgWealth = newWealth / population;
+            const wealthDisplay = formatCurrency(newWealth);
+            const popDisplay = formatPopulation(population);
+            const avgWealthDisplay = formatCurrency(avgWealth);
+
+            document.getElementById(`pop-${tier}`).textContent = popDisplay;
+            document.getElementById(`wealth-${tier}`).textContent = wealthDisplay;
+            document.getElementById(`avgWealth${tier.charAt(0).toUpperCase() + tier.slice(1)}`).textContent = avgWealthDisplay;
+
+            const changeEl = document.getElementById(`change-${tier}`);
+            const sign = wealthChange >= 0 ? '+' : '';
+            changeEl.textContent = sign + wealthChange.toFixed(1) + '% wealth';
+            changeEl.className = 'tier-change ' + (wealthChange >= 0 ? 'positive' : 'negative');
+        }
+
+        function updateCharts(wealthDistribution) {
+            // Current distribution
+            const currentBars = [
+                { tier: 'bottom50', pct: 0.05, label: 'Bottom 50%' },
+                { tier: 'middle40', pct: 0.17, label: 'Middle 40%' },
+                { tier: 'upper10', pct: 0.70, label: 'Upper 10%' },
+                { tier: 'top1', pct: 0.50, label: 'Top 1%' }
             ];
 
-            const gini = parseFloat(document.getElementById('giniSlider').value);
-            const adjustedPhases = phases.map((p, i) => ({
-                ...p,
-                giniStart: gini - (i * (gini - 0.50) / 5),
-                giniEnd: gini - ((i + 1) * (gini - 0.50) / 5),
-                yearStart: Math.round(i * phaseLength),
-                yearEnd: Math.round((i + 1) * phaseLength)
-            }));
+            const targetBars = [
+                { tier: 'bottom50', pct: wealthDistribution.bottom50_wealth_pct, label: 'Bottom 50%' },
+                { tier: 'middle40', pct: wealthDistribution.middle40_wealth_pct, label: 'Middle 40%' },
+                { tier: 'upper10', pct: wealthDistribution.upper10_wealth_pct, label: 'Upper 10%' },
+                { tier: 'top1', pct: wealthDistribution.top1_wealth_pct, label: 'Top 1%' }
+            ];
 
-            const timelineHtml = adjustedPhases.map((p, i) => `
-                <div class="timeline-item" onclick="selectPhase(${i})">
-                    <div class="timeline-phase">Phase ${p.phase}</div>
-                    <div class="timeline-gini">${p.giniEnd.toFixed(2)}</div>
-                    <div class="timeline-years">Yr ${p.yearStart}-${p.yearEnd}</div>
-                </div>
-            `).join('');
+            renderChart('currentChart', currentBars);
+            renderChart('targetChart', targetBars);
+        }
 
-            document.getElementById('timeline').innerHTML = timelineHtml;
+        function renderChart(chartId, bars) {
+            const maxPct = Math.max(...bars.map(b => b.pct));
+            const html = bars.map(bar => {
+                const height = (bar.pct / maxPct) * 100;
+                const tierClass = bar.tier === 'top1' ? 'top1' : bar.tier;
+                return `
+                    <div class="bar-wrapper">
+                        <div class="bar ${tierClass}" style="height: ${height}%; min-height: 20px;">
+                            <div class="bar-value">${(bar.pct * 100).toFixed(0)}%</div>
+                        </div>
+                        <div class="bar-label">${bar.label}</div>
+                    </div>
+                `;
+            }).join('');
+            document.getElementById(chartId).innerHTML = html;
+        }
+
+        function updateBeneficiaryStatus(wealthDistribution) {
+            const statuses = [
+                {
+                    tier: 'Bottom 50%',
+                    current: 0.05,
+                    target: wealthDistribution.bottom50_wealth_pct,
+                    isBeneficiary: wealthDistribution.bottom50_wealth_pct > 0.05
+                },
+                {
+                    tier: 'Middle 40%',
+                    current: 0.17,
+                    target: wealthDistribution.middle40_wealth_pct,
+                    isBeneficiary: wealthDistribution.middle40_wealth_pct > 0.17
+                },
+                {
+                    tier: 'Upper 10%',
+                    current: 0.70,
+                    target: wealthDistribution.upper10_wealth_pct,
+                    isBeneficiary: wealthDistribution.upper10_wealth_pct > 0.70
+                },
+                {
+                    tier: 'Top 1%',
+                    current: 0.50,
+                    target: wealthDistribution.top1_wealth_pct,
+                    isBeneficiary: wealthDistribution.top1_wealth_pct > 0.50
+                }
+            ];
+
+            const html = statuses.map(status => {
+                const change = ((status.target - status.current) / status.current) * 100;
+                const isGain = change >= 0;
+                return `
+                    <div class="status-box">
+                        <div class="status-indicator ${isGain ? 'gain' : 'loss'}">
+                            ${isGain ? '▲' : '▼'}
+                        </div>
+                        <div class="status-text">
+                            <div class="tier-name">${status.tier}</div>
+                            <div class="change ${isGain ? 'positive' : 'negative'}">
+                                ${isGain ? '+' : ''}${change.toFixed(1)}%
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('beneficiaryStatus').innerHTML = html;
+        }
+
+        function formatCurrency(amount) {
+            if (amount >= 1e12) return '$' + (amount / 1e12).toFixed(1) + 'T';
+            if (amount >= 1e9) return '$' + (amount / 1e9).toFixed(1) + 'B';
+            if (amount >= 1e6) return '$' + (amount / 1e6).toFixed(1) + 'M';
+            if (amount >= 1e3) return '$' + (amount / 1e3).toFixed(0) + 'k';
+            return '$' + amount.toFixed(0);
+        }
+
+        function formatPopulation(pop) {
+            if (pop >= 1e9) return (pop / 1e9).toFixed(1) + 'B';
+            if (pop >= 1e6) return (pop / 1e6).toFixed(0) + 'M';
+            if (pop >= 1e3) return (pop / 1e3).toFixed(0) + 'k';
+            return pop.toFixed(0);
         }
 
         function loadScenario(scenario) {
             const data = scenarios[scenario];
             document.getElementById('giniSlider').value = data.gini;
-            document.getElementById('targetGiniSlider').value = data.targetGini;
-            document.getElementById('timelineSlider').value = data.timeline;
-            document.getElementById('populationSlider').value = data.population;
-            document.getElementById('wealthSlider').value = data.wealth;
             updateDashboard();
         }
 
@@ -792,55 +947,7 @@
             loadScenario('current');
         }
 
-        function selectPhase(phaseNum) {
-            // Can be extended for detailed phase view
-            console.log('Selected phase:', phaseNum + 1);
-        }
-
-        function exportData() {
-            const gini = parseFloat(document.getElementById('giniSlider').value);
-            const targetGini = parseFloat(document.getElementById('targetGiniSlider').value);
-            const timeline = parseInt(document.getElementById('timelineSlider').value);
-            
-            const report = `
-BOLTZMANN-GIBBS WEALTH TRANSITION REPORT
-Generated: ${new Date().toLocaleDateString()}
-
-SCENARIO PARAMETERS:
-- Current Gini: ${gini.toFixed(2)}
-- Target Gini: ${targetGini.toFixed(2)}
-- Timeline: ${timeline} years
-- Population: ${document.getElementById('displayPopulation').textContent}M
-- Total Wealth: $${document.getElementById('displayWealth').textContent}T
-
-KEY METRICS:
-- Gini Reduction: ${document.getElementById('giniReduction').textContent}
-- GDP Growth Acceleration: ${document.getElementById('gdpGrowth').textContent}
-- Bottom 50% Wealth Gain: ${document.getElementById('wealthGain').textContent}
-- Entrepreneurship Increase: ${document.getElementById('entrepreneurshipGain').textContent}
-- Innovation Index Gain: ${document.getElementById('innovationGain').textContent}
-
-OUTCOMES (${timeline}-Year Horizon):
-- GDP Growth Increase: ${document.getElementById('summaryGdp').textContent}
-- Jobs Created: ${document.getElementById('summaryJobs').textContent}
-- Life Expectancy Gap Reduction: ${document.getElementById('summaryLife').textContent}
-- Homeownership Increase: ${document.getElementById('summaryHome').textContent}
-
-Report generated by: Boltzmann-Gibbs Transition Dashboard
-            `;
-
-            const blob = new Blob([report], { type: 'text/plain' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'wealth-transition-report.txt';
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
-        }
-
-        // Initialize dashboard
+        // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             updateDashboard();
         });
