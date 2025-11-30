@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boltzmann-Gibbs Wealth Transition Dashboard</title>
+    <style>
+        :root {
+            --color-bg-primary: rgba(252, 252, 249, 1);
+            --color-bg-secondary: rgba(255, 255, 253, 1);
+            --color-text-primary: rgba(19, 52, 59, 1);
+            --color-text-secondary: rgba(98, 108, 113, 1);
+            --color-primary: rgba(33, 128, 141, 1);
+            --color-primary-hover: rgba(29, 116, 128, 1);
+            --color-success: rgba(33, 128, 141, 1);
+            --color-error: rgba(192, 21, 47, 1);
+            --color-warning: rgba(168, 75, 47, 1);
+            --color-border: rgba(94, 82, 64, 0.2);
+            --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.04);
+            --radius-lg: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--color-bg-primary);
+            color: var(--color-text-primary);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            border-bottom: 2px solid var(--color-border);
+            padding-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            color: var(--color-text-primary);
+        }
+
+        .subtitle {
+            font-size: 1.1em;
+            color: var(--color-text-secondary);
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        @media (max-width: 1200px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel {
+            background: var(--color-bg-secondary);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            padding: 30px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .panel-title {
+            font-size: 1.4em;
+            margin-bottom: 20px;
+            color: var(--color-text-primary);
+            font-weight: 600;
+        }
+
+        .control-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.95em;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--color-text-primary);
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: var(--color-border);
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--color-primary);
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--color-primary);
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .slider-value {
+            display: inline-block;
+            background: var(--color-primary);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .metric-box {
+            background: white;
+            border-left: 4px solid var(--color-primary);
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+        }
+
+        .metric-label {
+            font-size: 0.85em;
+            color: var(--color-text-secondary);
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+
+        .metric-value {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: var(--color-primary);
+            margin-bottom: 5px;
+        }
+
+        .metric-change {
+            font-size: 0.95em;
+            font-weight: 600;
+        }
+
+        .metric-change.positive {
+            color: var(--color-success);
+        }
+
+        .metric-change.negative {
+            color: var(--color-error);
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .scenario-box {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--color-border);
+            text-align: center;
+        }
+
+        .scenario-title {
+            font-size: 0.9em;
+            font-weight: 600;
+            color: var(--color-text-secondary);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .scenario-value {
+            font-size: 1.6em;
+            font-weight: 700;
+            color: var(--color-primary);
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 300px;
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid var(--color-border);
+            position: relative;
+        }
+
+        .bar-chart {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            height: 100%;
+            gap: 15px;
+        }
+
+        .bar {
+            flex: 1;
+            background: var(--color-primary);
+            border-radius: 4px 4px 0 0;
+            position: relative;
+            min-height: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .bar:hover {
+            background: var(--color-primary-hover);
+            filter: brightness(1.1);
+        }
+
+        .bar-label {
+            position: absolute;
+            bottom: -25px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 0.8em;
+            color: var(--color-text-secondary);
+            font-weight: 600;
+        }
+
+        .bar-value {
+            position: absolute;
+            top: -25px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 0.9em;
+            font-weight: 700;
+            color: var(--color-primary);
+        }
+
+        button {
+            background: var(--color-primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        button:hover {
+            background: var(--color-primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(33, 128, 141, 0.3);
+        }
+
+        button.secondary {
+            background: white;
+            color: var(--color-primary);
+            border: 2px solid var(--color-primary);
+        }
+
+        button.secondary:hover {
+            background: var(--color-primary);
+            color: white;
+        }
+
+        .timeline {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .timeline-item {
+            background: white;
+            border: 2px solid var(--color-border);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .timeline-item:hover {
+            border-color: var(--color-primary);
+            box-shadow: 0 2px 8px rgba(33, 128, 141, 0.2);
+        }
+
+        .timeline-item.active {
+            background: var(--color-primary);
+            color: white;
+            border-color: var(--color-primary);
+        }
+
+        .timeline-phase {
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .timeline-gini {
+            font-size: 1.4em;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .timeline-years {
+            font-size: 0.8em;
+            opacity: 0.8;
+        }
+
+        .summary-panel {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, rgba(33, 128, 141, 0.1) 0%, rgba(33, 128, 141, 0.05) 100%);
+            border-left: 5px solid var(--color-primary);
+            padding: 25px;
+            border-radius: 8px;
+        }
+
+        .summary-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: var(--color-text-primary);
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .summary-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .summary-item {
+            text-align: center;
+        }
+
+        .summary-label {
+            font-size: 0.85em;
+            color: var(--color-text-secondary);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .summary-value {
+            font-size: 1.6em;
+            font-weight: 700;
+            color: var(--color-primary);
+        }
+
+        .tooltip {
+            position: absolute;
+            background: var(--color-text-primary);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            white-space: nowrap;
+            z-index: 1000;
+            display: none;
+        }
+
+        .info-icon {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            background: var(--color-primary);
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 20px;
+            font-size: 0.8em;
+            margin-left: 8px;
+            cursor: help;
+            position: relative;
+        }
+
+        .info-icon:hover + .tooltip {
+            display: block;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .reset-button {
+            background: var(--color-warning);
+        }
+
+        .reset-button:hover {
+            background: rgba(168, 75, 47, 0.9);
+        }
+
+        .export-button {
+            background: var(--color-primary);
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--color-border);
+            color: var(--color-text-secondary);
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Boltzmann-Gibbs Wealth Transition Dashboard</h1>
+            <p class="subtitle">Interactive Model: Explore Economic Restructuring to Gini 0.50</p>
+        </header>
+
+        <div class="controls">
+            <button class="secondary" onclick="loadScenario('current')">Current Reality</button>
+            <button class="secondary" onclick="loadScenario('target')">Target State</button>
+            <button class="secondary" onclick="loadScenario('historical')">Post-WWII</button>
+            <button class="reset-button" onclick="resetDashboard()">Reset</button>
+            <button class="export-button" onclick="exportData()">Export Report</button>
+        </div>
+
+        <div class="dashboard-grid">
+            <!-- LEFT PANEL: Input Controls -->
+            <div class="panel">
+                <div class="panel-title">Scenario Builder</div>
+                
+                <div class="control-group">
+                    <label>
+                        Current Gini Coefficient
+                        <span class="slider-value" id="giniValue">0.83</span>
+                    </label>
+                    <input type="range" id="giniSlider" min="0.30" max="0.95" step="0.01" value="0.83" oninput="updateDashboard()">
+                </div>
+
+                <div class="control-group">
+                    <label>
+                        Target Gini Coefficient
+                        <span class="slider-value" id="targetGiniValue">0.50</span>
+                    </label>
+                    <input type="range" id="targetGiniSlider" min="0.30" max="0.95" step="0.01" value="0.50" oninput="updateDashboard()">
+                </div>
+
+                <div class="control-group">
+                    <label>
+                        Transition Timeline (Years)
+                        <span class="slider-value" id="timelineValue">25</span>
+                    </label>
+                    <input type="range" id="timelineSlider" min="10" max="40" step="1" value="25" oninput="updateDashboard()">
+                </div>
+
+                <div class="control-group">
+                    <label>
+                        Population (Millions)
+                        <span class="slider-value" id="populationValue">330</span>
+                    </label>
+                    <input type="range" id="populationSlider" min="50" max="1500" step="50" value="330" oninput="updateDashboard()">
+                </div>
+
+                <div class="control-group">
+                    <label>
+                        Total Wealth (Trillions $)
+                        <span class="slider-value" id="wealthValue">$193T</span>
+                    </label>
+                    <input type="range" id="wealthSlider" min="50" max="500" step="10" value="193" oninput="updateDashboard()">
+                </div>
+
+                <hr style="margin: 20px 0; border: none; border-top: 1px solid var(--color-border);">
+
+                <div style="background: rgba(33, 128, 141, 0.05); padding: 15px; border-radius: 6px; margin-top: 20px;">
+                    <strong>Key Inputs</strong>
+                    <div style="font-size: 0.9em; margin-top: 10px;">
+                        <div><strong>Current State:</strong> Gini <span id="displayGini">0.83</span></div>
+                        <div><strong>Target State:</strong> Gini <span id="displayTargetGini">0.50</span></div>
+                        <div><strong>Timeline:</strong> <span id="displayTimeline">25</span> years</div>
+                        <div><strong>Population:</strong> <span id="displayPopulation">330</span>M</div>
+                        <div><strong>Total Wealth:</strong> $<span id="displayWealth">193</span>T</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT PANEL: Key Metrics -->
+            <div class="panel">
+                <div class="panel-title">Economic Impact Projections</div>
+
+                <div class="metric-box">
+                    <div class="metric-label">Gini Coefficient Reduction</div>
+                    <div class="metric-value" id="giniReduction">-0.33</div>
+                    <div class="metric-change positive" id="giniPercent">60% reduction</div>
+                </div>
+
+                <div class="metric-box">
+                    <div class="metric-label">Annual GDP Growth</div>
+                    <div class="metric-value" id="gdpGrowth">+1.5%</div>
+                    <div class="metric-change positive" id="gdpPercent">From 2.3% → 3.8%</div>
+                </div>
+
+                <div class="metric-box">
+                    <div class="metric-label">Bottom 50% Wealth Gain</div>
+                    <div class="metric-value" id="wealthGain">+$230k</div>
+                    <div class="metric-change positive" id="wealthPercent">+383% average</div>
+                </div>
+
+                <div class="metric-box">
+                    <div class="metric-label">Entrepreneurship Increase</div>
+                    <div class="metric-value" id="entrepreneurshipGain">+111%</div>
+                    <div class="metric-change positive" id="entrepreneurPercent">180 → 380 per 100k</div>
+                </div>
+
+                <div class="metric-box">
+                    <div class="metric-label">Innovation Index Gain</div>
+                    <div class="metric-value" id="innovationGain">+114%</div>
+                    <div class="metric-change positive" id="innovationPercent">35 → 75</div>
+                </div>
+
+                <div class="metric-box">
+                    <div class="metric-label">Global Beneficiaries</div>
+                    <div class="metric-value" id="beneficiaries">2.3B</div>
+                    <div class="metric-change positive" id="beneficiaryPercent">Bottom 50% of major economies</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- IMPLEMENTATION TIMELINE -->
+        <div class="panel">
+            <div class="panel-title">5-Phase Implementation Timeline</div>
+            <div class="timeline" id="timeline">
+                <!-- Populated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- THREE-SCENARIO COMPARISON -->
+        <div class="dashboard-grid">
+            <div class="panel">
+                <div class="panel-title">Current State vs. Target vs. Historical</div>
+                <div class="comparison-grid">
+                    <div class="scenario-box">
+                        <div class="scenario-title">Current (2024)</div>
+                        <div style="font-size: 2em; margin-bottom: 5px;">🔴</div>
+                        <div class="scenario-value" style="color: var(--color-error);">Gini 0.83</div>
+                        <div style="font-size: 0.85em; color: var(--color-text-secondary); margin-top: 10px;">Growth: 2.3%<br>Innovation: 35</div>
+                    </div>
+                    <div class="scenario-box">
+                        <div class="scenario-title">Target (2050)</div>
+                        <div style="font-size: 2em; margin-bottom: 5px;">🟢</div>
+                        <div class="scenario-value">Gini 0.50</div>
+                        <div style="font-size: 0.85em; color: var(--color-text-secondary); margin-top: 10px;">Growth: 3.8%<br>Innovation: 75</div>
+                    </div>
+                    <div class="scenario-box">
+                        <div class="scenario-title">Post-WWII (1950-1973)</div>
+                        <div style="font-size: 2em; margin-bottom: 5px;">🔵</div>
+                        <div class="scenario-value" style="color: rgba(33, 128, 141, 0.7);">Gini 0.48</div>
+                        <div style="font-size: 0.85em; color: var(--color-text-secondary); margin-top: 10px;">Growth: 4.5%<br>Innovation: 85</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-title">Three Pillars of Transition</div>
+                <div style="display: grid; gap: 15px;">
+                    <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid var(--color-primary);">
+                        <strong style="color: var(--color-primary);">1. Sovereign Asset Fund</strong>
+                        <div style="font-size: 0.9em; color: var(--color-text-secondary); margin-top: 5px;">
+                            2% annual equity transfer from top 1%<br>
+                            <strong>Total mobilized: $39 trillion</strong>
+                        </div>
+                    </div>
+                    <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid var(--color-warning);">
+                        <strong style="color: var(--color-warning);">2. Exit Tax</strong>
+                        <div style="font-size: 0.9em; color: var(--color-text-secondary); margin-top: 5px;">
+                            40% deemed disposal for capital flight<br>
+                            <strong>Prevents oligarch flight</strong>
+                        </div>
+                    </div>
+                    <div style="background: white; padding: 15px; border-radius: 8px; border-left: 4px solid var(--color-success);">
+                        <strong style="color: var(--color-success);">3. Universal Basic Capital</strong>
+                        <div style="font-size: 0.9em; color: var(--color-text-secondary); margin-top: 5px;">
+                            $75-100k per citizen at age 18<br>
+                            <strong>Enables 2.3B people globally</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SUMMARY PANEL -->
+        <div class="panel summary-panel">
+            <div class="summary-title">25-Year Transition Outcomes</div>
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <div class="summary-label">GDP Growth Acceleration</div>
+                    <div class="summary-value" id="summaryGdp">+65%</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Jobs Created</div>
+                    <div class="summary-value" id="summaryJobs">15M+</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Life Expectancy Gap</div>
+                    <div class="summary-value" id="summaryLife">-73%</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Homeownership Increase</div>
+                    <div class="summary-value" id="summaryHome">+26%</div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p><strong>Boltzmann-Gibbs Wealth Transition Interactive Dashboard</strong></p>
+            <p>Based on econophysics, thermodynamic principles, and empirical data from 96+ countries (2004-2024)</p>
+            <p style="margin-top: 10px; font-size: 0.85em; color: rgba(0,0,0,0.5);">This dashboard is for educational and exploratory purposes. Actual policy implementation would require detailed modeling and international coordination.</p>
+        </footer>
+    </div>
+
+    <script>
+        const scenarios = {
+            current: {
+                gini: 0.83,
+                targetGini: 0.50,
+                timeline: 25,
+                population: 330,
+                wealth: 193
+            },
+            target: {
+                gini: 0.50,
+                targetGini: 0.50,
+                timeline: 25,
+                population: 330,
+                wealth: 193
+            },
+            historical: {
+                gini: 0.48,
+                targetGini: 0.48,
+                timeline: 25,
+                population: 140,
+                wealth: 2
+            }
+        };
+
+        function updateDashboard() {
+            const gini = parseFloat(document.getElementById('giniSlider').value);
+            const targetGini = parseFloat(document.getElementById('targetGiniSlider').value);
+            const timeline = parseInt(document.getElementById('timelineSlider').value);
+            const population = parseInt(document.getElementById('populationSlider').value);
+            const wealth = parseInt(document.getElementById('wealthSlider').value);
+
+            // Update slider displays
+            document.getElementById('giniValue').textContent = gini.toFixed(2);
+            document.getElementById('targetGiniValue').textContent = targetGini.toFixed(2);
+            document.getElementById('timelineValue').textContent = timeline;
+            document.getElementById('populationValue').textContent = population;
+            document.getElementById('wealthValue').textContent = '$' + wealth + 'T';
+
+            // Update display values
+            document.getElementById('displayGini').textContent = gini.toFixed(2);
+            document.getElementById('displayTargetGini').textContent = targetGini.toFixed(2);
+            document.getElementById('displayTimeline').textContent = timeline;
+            document.getElementById('displayPopulation').textContent = population;
+            document.getElementById('displayWealth').textContent = wealth;
+
+            // Calculate metrics
+            const giniReduction = gini - targetGini;
+            const giniPercent = ((giniReduction / gini) * 100).toFixed(0);
+            
+            const gdpGain = (gini - targetGini) * 2.5; // Simplified model
+            const currentGdp = 2.3;
+            const targetGdp = currentGdp + (gdpGain * 1.5);
+            const gdpGrowthGain = targetGdp - currentGdp;
+            const gdpPercent = ((gdpGrowthGain / currentGdp) * 100).toFixed(0);
+
+            // Bottom 50% wealth calculation
+            const currentWealthBottom50 = 60; // in thousands
+            const wealthGainPercent = (giniReduction / gini) * 383 * 0.6; // Proportional gain
+            const wealthGain = (currentWealthBottom50 * wealthGainPercent) / 100;
+            const targetWealthBottom50 = currentWealthBottom50 + wealthGain;
+
+            // Entrepreneurship
+            const entrepreneurshipCurrent = 180;
+            const entrepreneurshipTarget = 180 + (giniReduction / gini) * 200;
+            const entrepreneurGain = ((entrepreneurshipTarget - entrepreneurshipCurrent) / entrepreneurshipCurrent) * 100;
+
+            // Innovation
+            const innovationCurrent = 35;
+            const innovationTarget = 35 + (giniReduction / gini) * 50;
+            const innovationGain = ((innovationTarget - innovationCurrent) / innovationCurrent) * 100;
+
+            // Update metrics
+            document.getElementById('giniReduction').textContent = giniReduction.toFixed(2);
+            document.getElementById('giniPercent').textContent = giniPercent + '% reduction';
+            
+            document.getElementById('gdpGrowth').textContent = (gdpGrowthGain * 100).toFixed(1) + '%';
+            document.getElementById('gdpPercent').textContent = 'From ' + currentGdp.toFixed(1) + '% → ' + targetGdp.toFixed(1) + '%';
+            
+            document.getElementById('wealthGain').textContent = '+$' + Math.round(wealthGain * 1000) + '';
+            document.getElementById('wealthPercent').textContent = '+' + ((wealthGainPercent)).toFixed(0) + '% average';
+            
+            document.getElementById('entrepreneurshipGain').textContent = '+' + entrepreneurGain.toFixed(0) + '%';
+            document.getElementById('entrepreneurPercent').textContent = Math.round(entrepreneurshipCurrent) + ' → ' + Math.round(entrepreneurshipTarget) + ' per 100k';
+            
+            document.getElementById('innovationGain').textContent = '+' + innovationGain.toFixed(0) + '%';
+            document.getElementById('innovationPercent').textContent = Math.round(innovationCurrent) + ' → ' + Math.round(innovationTarget);
+
+            // Update summary
+            document.getElementById('summaryGdp').textContent = '+' + gdpPercent + '%';
+            document.getElementById('summaryJobs').textContent = (15 * (gdpGain / 0.33)).toFixed(0) + 'M+';
+            document.getElementById('summaryLife').textContent = '-' + (73 * (giniReduction / 0.33)).toFixed(0) + '%';
+            document.getElementById('summaryHome').textContent = '+' + (26 * (giniReduction / 0.33)).toFixed(0) + '%';
+
+            updateTimeline();
+        }
+
+        function updateTimeline() {
+            const timeline = parseInt(document.getElementById('timelineSlider').value);
+            const phaseLength = timeline / 5;
+
+            const phases = [
+                { phase: 1, giniStart: 0.83, giniEnd: 0.75, label: 'Foundation' },
+                { phase: 2, giniStart: 0.75, giniEnd: 0.65, label: 'Acceleration' },
+                { phase: 3, giniStart: 0.65, giniEnd: 0.58, label: 'Transition' },
+                { phase: 4, giniStart: 0.58, giniEnd: 0.52, label: 'Momentum' },
+                { phase: 5, giniStart: 0.52, giniEnd: 0.50, label: 'Equilibrium' }
+            ];
+
+            const gini = parseFloat(document.getElementById('giniSlider').value);
+            const adjustedPhases = phases.map((p, i) => ({
+                ...p,
+                giniStart: gini - (i * (gini - 0.50) / 5),
+                giniEnd: gini - ((i + 1) * (gini - 0.50) / 5),
+                yearStart: Math.round(i * phaseLength),
+                yearEnd: Math.round((i + 1) * phaseLength)
+            }));
+
+            const timelineHtml = adjustedPhases.map((p, i) => `
+                <div class="timeline-item" onclick="selectPhase(${i})">
+                    <div class="timeline-phase">Phase ${p.phase}</div>
+                    <div class="timeline-gini">${p.giniEnd.toFixed(2)}</div>
+                    <div class="timeline-years">Yr ${p.yearStart}-${p.yearEnd}</div>
+                </div>
+            `).join('');
+
+            document.getElementById('timeline').innerHTML = timelineHtml;
+        }
+
+        function loadScenario(scenario) {
+            const data = scenarios[scenario];
+            document.getElementById('giniSlider').value = data.gini;
+            document.getElementById('targetGiniSlider').value = data.targetGini;
+            document.getElementById('timelineSlider').value = data.timeline;
+            document.getElementById('populationSlider').value = data.population;
+            document.getElementById('wealthSlider').value = data.wealth;
+            updateDashboard();
+        }
+
+        function resetDashboard() {
+            loadScenario('current');
+        }
+
+        function selectPhase(phaseNum) {
+            // Can be extended for detailed phase view
+            console.log('Selected phase:', phaseNum + 1);
+        }
+
+        function exportData() {
+            const gini = parseFloat(document.getElementById('giniSlider').value);
+            const targetGini = parseFloat(document.getElementById('targetGiniSlider').value);
+            const timeline = parseInt(document.getElementById('timelineSlider').value);
+            
+            const report = `
+BOLTZMANN-GIBBS WEALTH TRANSITION REPORT
+Generated: ${new Date().toLocaleDateString()}
+
+SCENARIO PARAMETERS:
+- Current Gini: ${gini.toFixed(2)}
+- Target Gini: ${targetGini.toFixed(2)}
+- Timeline: ${timeline} years
+- Population: ${document.getElementById('displayPopulation').textContent}M
+- Total Wealth: $${document.getElementById('displayWealth').textContent}T
+
+KEY METRICS:
+- Gini Reduction: ${document.getElementById('giniReduction').textContent}
+- GDP Growth Acceleration: ${document.getElementById('gdpGrowth').textContent}
+- Bottom 50% Wealth Gain: ${document.getElementById('wealthGain').textContent}
+- Entrepreneurship Increase: ${document.getElementById('entrepreneurshipGain').textContent}
+- Innovation Index Gain: ${document.getElementById('innovationGain').textContent}
+
+OUTCOMES (${timeline}-Year Horizon):
+- GDP Growth Increase: ${document.getElementById('summaryGdp').textContent}
+- Jobs Created: ${document.getElementById('summaryJobs').textContent}
+- Life Expectancy Gap Reduction: ${document.getElementById('summaryLife').textContent}
+- Homeownership Increase: ${document.getElementById('summaryHome').textContent}
+
+Report generated by: Boltzmann-Gibbs Transition Dashboard
+            `;
+
+            const blob = new Blob([report], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'wealth-transition-report.txt';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        }
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            updateDashboard();
+        });
+    </script>
+</body>
+</html>
