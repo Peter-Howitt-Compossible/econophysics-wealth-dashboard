@@ -1,6 +1,6 @@
 # COMPREHENSIVE FAQ: Boltzmann-Gibbs Wealth Transition
 
-## Addressing 60+ Anticipated Questions and Objections
+## Addressing 60+ Anticipated Questions and Objections by the Perplexity Policy Research Team
 
 **Document Version:** 1.0  
 **Date:** November 26, 2025  
@@ -19,7 +19,7 @@
 
 When these conditions are met, the system naturally settles at an exponential distribution with a Gini coefficient of approximately **0.50**. This is a mathematical law, not a political ideology. It applies to physics (gas molecules), economics (wealth), and many other systems.
 
-**Why it matters for policy:** Current wealth distribution (Gini 0.83) violates this natural law and requires continuous enforcement. Removing artificial constraints allows the system to naturally revert to Gini 0.50—with no "socialism" or central planning required.
+**Why it matters for policy:** Current wealth distribution (Gini 0.83) is contrary to this natural distribution and requires continuous enforcement. Removing artificial constraints allows the system to naturally revert to Gini 0.50—with no "socialism" or central planning required.
 
 ---
 
